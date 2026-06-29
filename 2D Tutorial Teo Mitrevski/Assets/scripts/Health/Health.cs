@@ -22,12 +22,16 @@ public class Health : MonoBehaviour
     [SerializeField] private AudioClip deathSound;
     [SerializeField] private AudioClip hurtSound;
 
+    private PlayerRespawn playerRespawn; // Декларација за респаун скриптата
+
     private void Awake()
     {
         currentHealth = startingHealth;
         anim = GetComponent<Animator>();
         spriteRend = GetComponent<SpriteRenderer>();
+        playerRespawn = GetComponent<PlayerRespawn>(); // Ја земаме респаун скриптата
     }
+
     public void TakeDamage(float _damage)
     {
         if (invulnerable) return;
@@ -43,7 +47,7 @@ public class Health : MonoBehaviour
         {
             if (!dead)
             {
-                //Deactivate all attached component classes
+                // Deactivate all attached component classes
                 foreach (Behaviour component in components)
                     component.enabled = false;
 
@@ -52,9 +56,17 @@ public class Health : MonoBehaviour
 
                 dead = true;
                 SoundManager.instance.PlaySound(deathSound);
+
+                // Директно го активираме Game Over екранот преку UIManager
+                UIManager uiManager = FindFirstObjectByType<UIManager>();
+                if (uiManager != null)
+                {
+                    uiManager.GameOver();
+                }
             }
         }
     }
+
     public void AddHealth(float _value)
     {
         currentHealth = Mathf.Clamp(currentHealth + _value, 0, startingHealth);
@@ -68,10 +80,11 @@ public class Health : MonoBehaviour
         anim.Play("idle");
         StartCoroutine(Invunerability());
 
-        //Activate all attached component classes
+        // Activate all attached component classes
         foreach (Behaviour component in components)
             component.enabled = true;
     }
+
     private IEnumerator Invunerability()
     {
         invulnerable = true;
@@ -86,6 +99,7 @@ public class Health : MonoBehaviour
         Physics2D.IgnoreLayerCollision(10, 11, false);
         invulnerable = false;
     }
+
     private void Deactivate()
     {
         gameObject.SetActive(false);

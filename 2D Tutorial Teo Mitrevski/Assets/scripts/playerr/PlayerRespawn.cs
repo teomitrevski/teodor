@@ -1,3 +1,4 @@
+using TMPro.Examples;
 using UnityEngine;
 
 public class PlayerRespawn : MonoBehaviour
@@ -5,44 +6,36 @@ public class PlayerRespawn : MonoBehaviour
     [SerializeField] private AudioClip checkpoint;
     private Transform currentCheckpoint;
     private Health playerHealth;
+    private UIManager uiManager;
 
     private void Awake()
     {
         playerHealth = GetComponent<Health>();
+        uiManager = FindObjectOfType<UIManager>();
     }
 
-    public void Respawn()
+    public void RespawnCheck()
     {
-        playerHealth.Respawn(); //Restore player health and reset animation
-
-        if (currentCheckpoint != null)
+        if (currentCheckpoint == null)
         {
-            transform.position = currentCheckpoint.position; //Move player to checkpoint location
-
-            //Move the camera to the checkpoint's room
-            if (Camera.main != null && Camera.main.GetComponent<Cameracontroll>() != null)
-            {
-                Camera.main.GetComponent<Cameracontroll>().MoveToNewRoom(currentCheckpoint.parent);
-            }
+            uiManager.GameOver();
+            return;
         }
+
+        playerHealth.Respawn(); //Restore player health and reset animation
+        transform.position = currentCheckpoint.position; //Move player to checkpoint location
+
+        //Move the camera to the checkpoint's room
+        Camera.main.GetComponent<Cameracontroll>().MoveToNewRoom(currentCheckpoint.parent);
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "Checkpoint")
         {
             currentCheckpoint = collision.transform;
-
-            if (SoundManager.instance != null && checkpoint != null)
-            {
-                SoundManager.instance.PlaySound(checkpoint);
-            }
-
+            SoundManager.instance.PlaySound(checkpoint);
             collision.GetComponent<Collider2D>().enabled = false;
-
-            if (collision.GetComponent<Animator>() != null)
-            {
-                collision.GetComponent<Animator>().SetTrigger("appear");
-            }
+            collision.GetComponent<Animator>().SetTrigger("activate");
         }
     }
 }
